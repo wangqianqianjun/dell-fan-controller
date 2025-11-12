@@ -1,5 +1,7 @@
 # Dell R730xd Fan Controller
 
+[中文版说明](README.zh-CN.md)
+
 Python service that exposes `http://<server-ip>:6180/dellfans` to monitor and control Dell PowerEdge R730xd fans. It uses raw IPMI commands (no `ipmitool` dependency) to:
 
 - Read CPU1/CPU2, inlet, exhaust temperatures, and every fan RPM.

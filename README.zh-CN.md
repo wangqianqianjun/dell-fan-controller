@@ -1,5 +1,7 @@
 # Dell R730xd Fan Controller（中文）
 
+[English Version](README.md)
+
 Python 服务，可通过 `http://<服务器IP>:6180/dellfans` 控制并监控 Dell PowerEdge R730xd 的风扇。功能包括：
 
 - 获取 CPU1/CPU2、进气、排气温度以及所有风扇的转速；
