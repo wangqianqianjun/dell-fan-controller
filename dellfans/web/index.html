@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>Dell R730xd Fan Controller</title>
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <h1>Dell R730xd Fan Controller</h1>
+        <p>通过网页控制/监控风扇 (访问路径 <code>/dellfans</code>)</p>
+      </header>
+
+      <section class="controls">
+        <div class="mode-control">
+          <h2>模式</h2>
+          <div class="btn-group">
+            <button id="btn-auto">交还 iDRAC</button>
+            <button id="btn-manual">开启手动</button>
+          </div>
+          <div class="slider">
+            <label for="pwm-slider">手动风扇转速比 (<span id="pwm-display">--</span>%)</label>
+            <div class="slider-row">
+              <input type="range" id="pwm-slider" min="0" max="100" value="30" />
+              <input type="number" id="pwm-input" min="0" max="100" value="30" />
+            </div>
+            <button id="apply-pwm">应用转速</button>
+          </div>
+        </div>
+        <div class="limits-control">
+          <h2>转速限制</h2>
+          <label>最小 (%)
+            <input type="number" id="min-pwm" min="0" max="100" value="20" />
+          </label>
+          <label>最大 (%)
+            <input type="number" id="max-pwm" min="0" max="100" value="80" />
+          </label>
+          <button id="apply-limits">保存限制</button>
+        </div>
+        <div class="poll-control">
+          <h2>传感器刷新周期</h2>
+          <label>秒
+            <input type="number" id="poll-interval" min="0.5" step="0.5" value="2" />
+          </label>
+          <button id="apply-interval">保存周期</button>
+        </div>
+      </section>
+
+      <section class="telemetry">
+        <h2>温度</h2>
+        <div class="cards" id="temp-cards">
+          <div class="card"><h3>CPU1</h3><p class="value">--</p></div>
+          <div class="card"><h3>CPU2</h3><p class="value">--</p></div>
+          <div class="card"><h3>进气</h3><p class="value">--</p></div>
+          <div class="card"><h3>排气</h3><p class="value">--</p></div>
+        </div>
+      </section>
+
+      <section class="fans">
+        <h2>风扇转速</h2>
+        <table>
+          <thead>
+            <tr><th>风扇</th><th>当前 RPM</th></tr>
+          </thead>
+          <tbody id="fan-table"></tbody>
+        </table>
+      </section>
+
+      <section class="status">
+        <h2>状态</h2>
+        <ul id="status-list"></ul>
+        <div class="errors" id="error-log"></div>
+        <p class="timestamp">最后刷新: <span id="last-refresh">--</span></p>
+      </section>
+    </div>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+[Unit]
+Description=Dell R730xd Fan Controller Web Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/data/home/dylan/dellfans
+ExecStart=/usr/bin/python3 /data/home/dylan/dellfans/main.py
+Restart=on-failure
+RestartSec=5
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,20 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Editor and tooling noise
+.mypy_cache/
+.pytest_cache/
+.idea/
+.vscode/
+*.swp
+*.log
+
+# Local artifacts
+ipmi_test.py

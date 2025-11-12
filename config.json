@@ -1,0 +1,8 @@
+{
+  "min_pwm": 10,
+  "max_pwm": 80,
+  "default_pwm": 35,
+  "poll_interval_seconds": 2.0,
+  "listen_host": "0.0.0.0",
+  "listen_port": 6180
+}
