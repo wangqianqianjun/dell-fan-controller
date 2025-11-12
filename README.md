@@ -11,6 +11,10 @@ Python service that exposes `http://<server-ip>:6180/dellfans` to monitor and co
 
 > **Note**: the process must access `/dev/ipmi0`, so run it with `sudo` or grant the user the required permissions.
 
+## Screenshot
+
+![Web Dashboard](pic.png)
+
 ## Running
 
 ### Foreground (interactive)
