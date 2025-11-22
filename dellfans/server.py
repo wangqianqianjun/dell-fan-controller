@@ -105,7 +105,8 @@ class FanHttpHandler(BaseHTTPRequestHandler):
         elif mode == "manual":
             pwm = payload.get("target_pwm", state["target_pwm"])
             try:
-                self._app().controller.set_manual(int(pwm))
+                applied = self._app().controller.set_manual(int(pwm))
+                self._app().config.set_default_pwm(applied)
             except Exception as exc:
                 self._write_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(exc)})
                 return
@@ -125,7 +126,8 @@ class FanHttpHandler(BaseHTTPRequestHandler):
             self._write_json(HTTPStatus.BAD_REQUEST, {"error": "value required"})
             return
         try:
-            self._app().controller.set_manual(int(value))
+            applied = self._app().controller.set_manual(int(value))
+            self._app().config.set_default_pwm(applied)
         except Exception as exc:
             self._write_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(exc)})
             return

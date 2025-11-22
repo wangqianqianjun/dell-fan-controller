@@ -52,10 +52,38 @@ function clamp(value, min, max) {
 function setSliderValue(value) {
   const min = parseInt(ui.slider.min, 10);
   const max = parseInt(ui.slider.max, 10);
-  const clamped = clamp(parseInt(value, 10) || min, min, max);
+  let numeric = parseInt(value, 10);
+  if (Number.isNaN(numeric)) {
+    numeric = min;
+  }
+  const clamped = clamp(numeric, min, max);
   ui.slider.value = clamped;
   ui.sliderDisplay.textContent = clamped;
   ui.pwmInput.value = clamped;
+}
+
+function previewPwmInput(value) {
+  if (value === "") {
+    ui.sliderDisplay.textContent = "--";
+    return;
+  }
+  const numeric = parseInt(value, 10);
+  if (Number.isNaN(numeric)) {
+    ui.sliderDisplay.textContent = value;
+    return;
+  }
+  const min = parseInt(ui.slider.min, 10);
+  const max = parseInt(ui.slider.max, 10);
+  if (numeric < min || numeric > max) {
+    ui.sliderDisplay.textContent = numeric;
+    return;
+  }
+  setSliderValue(numeric);
+}
+
+function isAdjustingPwm() {
+  const active = document.activeElement;
+  return active === ui.slider || active === ui.pwmInput;
 }
 
 function updateTemps(telemetry) {
@@ -107,7 +135,9 @@ async function refresh() {
     ui.slider.max = status.controller.max_pwm;
     ui.pwmInput.min = status.controller.min_pwm;
     ui.pwmInput.max = status.controller.max_pwm;
-    setSliderValue(status.controller.target_pwm);
+    if (!isAdjustingPwm()) {
+      setSliderValue(status.controller.target_pwm);
+    }
     ui.minInput.value = status.controller.min_pwm;
     ui.maxInput.value = status.controller.max_pwm;
     ui.pollInput.value = status.config.poll_interval_seconds;
@@ -120,7 +150,8 @@ async function refresh() {
 }
 
 ui.slider.addEventListener("input", (e) => setSliderValue(e.target.value));
-ui.pwmInput.addEventListener("input", (e) => setSliderValue(e.target.value));
+ui.pwmInput.addEventListener("input", (e) => previewPwmInput(e.target.value));
+ui.pwmInput.addEventListener("blur", () => setSliderValue(ui.pwmInput.value));
 
 ui.btnAuto.addEventListener("click", async () => {
   ui.btnAuto.disabled = true;
