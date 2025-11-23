@@ -3,7 +3,7 @@ from __future__ import annotations
 import threading
 from typing import Dict
 
-from .ipmi import IpmiInterface
+from .ipmi import IpmiCompletionError, IpmiError, IpmiInterface
 
 
 class FanController:
@@ -29,8 +29,20 @@ class FanController:
     def set_manual(self, pwm: int) -> int:
         pwm_value = self._clamp(pwm)
         with self._lock:
-            self._ipmi.send_command(0x30, 0x30, bytes([0x01, 0x00]))
-            self._ipmi.send_command(0x30, 0x30, bytes([0x02, 0xFF, pwm_value]))
+            try:
+                self._ipmi.send_command(0x30, 0x30, bytes([0x01, 0x00]))
+                self._ipmi.send_command(0x30, 0x30, bytes([0x02, 0xFF, pwm_value]))
+            except IpmiCompletionError as exc:
+                # Surface the completion code with a hint for iDRAC9/modern platforms.
+                hint = (
+                    "Fan override rejected by BMC (completion 0x%02x). "
+                    "On iDRAC9/14G+, enable lanplus/IPMB transport via config.json "
+                    "or DELLFANS_IDRAC_* environment variables."
+                )
+                raise IpmiCompletionError(exc.code, hint % exc.code) from exc
+            except IpmiError:
+                # Bubble any other IPMI errors directly.
+                raise
             self._mode = "manual"
             self._target_pwm = pwm_value
             return pwm_value

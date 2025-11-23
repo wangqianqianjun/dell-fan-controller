@@ -56,6 +56,10 @@ The UI then becomes available at `http://<server-ip>:6180/dellfans`.
 | `default_pwm` | Duty cycle applied immediately after switching into manual mode. |
 | `poll_interval_seconds` | Telemetry polling interval in seconds (min 0.5 s). |
 | `listen_host` / `listen_port` | HTTP bind address (defaults to `0.0.0.0:6180`). |
+| `transport` | `auto` (default), `kcs`, or `lan`. Use `lan` for iDRAC9/14G+. |
+| `lan_host` / `lan_user` / `lan_password` | iDRAC network address and credentials for lanplus. Required when `transport` is `lan` or `auto` on iDRAC9+. |
+| `lan_port` / `lan_privilege` | lanplus port (default 623) and privilege level (default `ADMIN`). |
+| `use_bridge` / `bridge_channel` / `bridge_target` | Optional IPMB bridging settings (defaults: `false`, channel `6`, target `0x2c`). |
 
 Manual min/max limits and the poll interval can also be changed from the web UI; updates are persisted back to `config.json`.
 
@@ -71,6 +75,26 @@ The default interval is `2.0` seconds. Change it at runtime via either method:
         -d '{"seconds": 1.5}'
    ```
    Replace `<server-ip>` with the actual address (or `127.0.0.1`). The endpoint updates both the running poller thread and `config.json` without restarting systemd.
+
+## Choosing the right transport (iDRAC generation)
+
+### Older iDRAC (7/8, 11G/13G, e.g., R730xd)
+- Uses host/KCS via `/dev/ipmi0`. No network auth required.
+- Run as root (or with IPMI device permissions) and keep `transport: "kcs"` or `auto`.
+- Manual mode commands work locally; no `ipmitool` dependency needed.
+
+### Newer iDRAC (9, 14G/15G, e.g., R940/R740/R650/R750)
+- Dell blocks the legacy fan override commands on the host channel. Use lanplus to the iDRAC.
+- Install `ipmitool` and provide iDRAC credentials:
+  ```bash
+  export DELLFANS_IDRAC_HOST=<idrac-host-or-ip>
+  export DELLFANS_IDRAC_USER=<user>
+  export DELLFANS_IDRAC_PASSWORD=<password>
+  # optional: export DELLFANS_IDRAC_PORT=623
+  ```
+  Or set `transport: "lan"` plus `lan_host`/`lan_user`/`lan_password` in `config.json`.
+- Optional IPMB bridge (if your platform requires it): set `use_bridge: true` and adjust `bridge_channel`/`bridge_target` (defaults 6 / 0x2c) to match your BMC wiring.
+- Restart the service. Startup prints the chosen transport; UI/API will surface any IPMI completion codes if the BMC rejects control.
 
 ## Safety
 

@@ -1,29 +1,47 @@
+async function fetchJson(path, options = {}) {
+  const response = await fetch(path, options);
+  let data = {};
+  try {
+    data = await response.clone().json();
+  } catch (err) {
+    data = {};
+  }
+  if (!response.ok || data.error) {
+    const message = data.error || `HTTP ${response.status}`;
+    const error = new Error(message);
+    error.status = response.status;
+    error.payload = data;
+    throw error;
+  }
+  return data;
+}
+
 const api = {
-  status: () => fetch("/dellfans/api/status").then((r) => r.json()),
+  status: () => fetchJson("/dellfans/api/status"),
   mode: (body) =>
-    fetch("/dellfans/api/mode", {
+    fetchJson("/dellfans/api/mode", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-    }).then((r) => r.json()),
+    }),
   pwm: (value) =>
-    fetch("/dellfans/api/pwm", {
+    fetchJson("/dellfans/api/pwm", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ value }),
-    }).then((r) => r.json()),
+    }),
   limits: (min_pwm, max_pwm) =>
-    fetch("/dellfans/api/limits", {
+    fetchJson("/dellfans/api/limits", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ min_pwm, max_pwm }),
-    }).then((r) => r.json()),
+    }),
   pollInterval: (seconds) =>
-    fetch("/dellfans/api/poll_interval", {
+    fetchJson("/dellfans/api/poll_interval", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ seconds }),
-    }).then((r) => r.json()),
+    }),
 };
 
 const ui = {
@@ -44,6 +62,14 @@ const ui = {
   errorLog: document.getElementById("error-log"),
   lastRefresh: document.getElementById("last-refresh"),
 };
+
+function showError(message) {
+  ui.errorLog.textContent = message;
+}
+
+function clearError() {
+  ui.errorLog.textContent = "";
+}
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -131,6 +157,7 @@ function updateStatus(status) {
 async function refresh() {
   try {
     const status = await api.status();
+    clearError();
     ui.slider.min = status.controller.min_pwm;
     ui.slider.max = status.controller.max_pwm;
     ui.pwmInput.min = status.controller.min_pwm;
@@ -145,7 +172,7 @@ async function refresh() {
     updateFans(status.telemetry.fans || []);
     updateStatus(status);
   } catch (err) {
-    ui.errorLog.textContent = `刷新失败: ${err}`;
+    showError(`刷新失败: ${err.message || err}`);
   }
 }
 
@@ -155,40 +182,65 @@ ui.pwmInput.addEventListener("blur", () => setSliderValue(ui.pwmInput.value));
 
 ui.btnAuto.addEventListener("click", async () => {
   ui.btnAuto.disabled = true;
-  await api.mode({ mode: "auto" });
-  ui.btnAuto.disabled = false;
-  refresh();
+  try {
+    await api.mode({ mode: "auto" });
+    await refresh();
+  } catch (err) {
+    showError(`切换自动失败: ${err.message || err}`);
+  } finally {
+    ui.btnAuto.disabled = false;
+  }
 });
 
 ui.btnManual.addEventListener("click", async () => {
   ui.btnManual.disabled = true;
-  await api.mode({ mode: "manual", target_pwm: parseInt(ui.slider.value, 10) });
-  ui.btnManual.disabled = false;
-  refresh();
+  try {
+    await api.mode({ mode: "manual", target_pwm: parseInt(ui.slider.value, 10) });
+    await refresh();
+  } catch (err) {
+    showError(`切换手动失败: ${err.message || err}`);
+  } finally {
+    ui.btnManual.disabled = false;
+  }
 });
 
 ui.applyPwm.addEventListener("click", async () => {
   ui.applyPwm.disabled = true;
-  await api.pwm(parseInt(ui.slider.value, 10));
-  ui.applyPwm.disabled = false;
-  refresh();
+  try {
+    await api.pwm(parseInt(ui.slider.value, 10));
+    await refresh();
+  } catch (err) {
+    showError(`设置转速失败: ${err.message || err}`);
+  } finally {
+    ui.applyPwm.disabled = false;
+  }
 });
 
 ui.applyLimits.addEventListener("click", async () => {
   const minVal = parseInt(ui.minInput.value, 10);
   const maxVal = parseInt(ui.maxInput.value, 10);
   ui.applyLimits.disabled = true;
-  await api.limits(minVal, maxVal);
-  ui.applyLimits.disabled = false;
-  refresh();
+  try {
+    await api.limits(minVal, maxVal);
+    await refresh();
+  } catch (err) {
+    showError(`保存上下限失败: ${err.message || err}`);
+  } finally {
+    ui.applyLimits.disabled = false;
+  }
 });
 
 ui.applyInterval.addEventListener("click", async () => {
   const seconds = parseFloat(ui.pollInput.value);
   ui.applyInterval.disabled = true;
-  await api.pollInterval(seconds);
-  ui.applyInterval.disabled = false;
-  refresh();
+  try {
+    await api.pollInterval(seconds);
+    await refresh();
+  } catch (err) {
+    showError(`保存刷新周期失败: ${err.message || err}`);
+  } finally {
+    ui.applyInterval.disabled = false;
+  }
 });
 
 refresh();

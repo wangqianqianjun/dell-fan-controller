@@ -4,5 +4,14 @@
   "default_pwm": 5,
   "poll_interval_seconds": 2.0,
   "listen_host": "0.0.0.0",
-  "listen_port": 6180
+  "listen_port": 6180,
+  "transport": "auto",
+  "lan_host": "",
+  "lan_user": "",
+  "lan_password": "",
+  "lan_port": 623,
+  "lan_privilege": "ADMIN",
+  "use_bridge": false,
+  "bridge_channel": 6,
+  "bridge_target": 44
 }

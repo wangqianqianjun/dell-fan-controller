@@ -13,6 +13,18 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "poll_interval_seconds": 2.0,
     "listen_host": "0.0.0.0",
     "listen_port": 6180,
+    # IPMI transport selection: auto|kcs|lan
+    "transport": "auto",
+    # LAN/lanplus settings for iDRAC9+ (R940, 14G/15G)
+    "lan_host": "",
+    "lan_user": "",
+    "lan_password": "",
+    "lan_port": 623,
+    "lan_privilege": "ADMIN",
+    # Optional IPMB bridge parameters when using lanplus (channel/target vary by platform)
+    "use_bridge": False,
+    "bridge_channel": 6,
+    "bridge_target": 0x2C,
 }
 
 

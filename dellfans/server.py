@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import atexit
 import json
-import os
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -11,7 +10,7 @@ from urllib.parse import urlparse
 
 from .config import ConfigManager
 from .controller import FanController
-from .ipmi import IpmiInterface
+from .ipmi import create_ipmi_interface
 from .sdr import SdrRepository
 from .telemetry import SensorReader, TelemetryPoller
 
@@ -20,7 +19,8 @@ class AppState:
     def __init__(self, root_dir: Path) -> None:
         config_path = root_dir / "config.json"
         self.config = ConfigManager.load(str(config_path))
-        self.ipmi = IpmiInterface()
+        self.ipmi, transport_note = create_ipmi_interface(self.config.data)
+        print(f"IPMI transport: {transport_note}")
         self.sdr = SdrRepository(self.ipmi)
         self.sensor_reader = SensorReader(self.ipmi, self.sdr)
         self.telemetry = TelemetryPoller(
